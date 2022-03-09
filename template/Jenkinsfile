@@ -1,0 +1,62 @@
+pipeline {
+  agent {
+    docker {
+      image 'node:14.17.5'
+    }
+
+  }
+  options {
+    buildDiscarder logRotator(artifactNumToKeepStr: '1', numToKeepStr: '1')
+  }
+  stages {
+    stage('Test') {
+      steps {
+        sh 'npm -v'
+        sh 'node -v'
+        sh 'yarn -v'
+      }
+    }
+
+    stage('install') {
+      steps {
+        sh 'npm install'
+      }
+    }
+
+    stage('build') {
+      steps {
+        sh 'npm run build'
+      }
+    }
+
+    stage('archive') {
+      steps {
+        sh 'tar -czvf <%= staticFileName %>.tar.gz build'
+        archiveArtifacts artifacts: '<%= staticFileName %>.tar.gz', followSymlinks: false
+      }
+    }
+
+    stage('Remote jekins') {
+      when {
+        branch "<%= compileBranch %>"
+      }
+      steps {
+        withCredentials([sshUserPrivateKey(credentialsId: '<%= jekinsSshId %>', keyFileVariable: 'identity')]) {
+          script{
+            def remote = [:]
+            remote.user = '<%= remoteUser %>'
+            remote.allowAnyHosts = true
+            remote.name = '<%= remoteName %>'
+            remote.host = '<%= remoteHost %>'
+            remote.identityFile = identity // 私钥
+
+            sshPut remote: remote, from: "<%= staticFileName %>.tar.gz", into: "<%= tarStorePath %>"
+            sshCommand remote: remote, command: "rm -rf <%= targetStore %>"
+            sshCommand remote: remote, command: "mkdir -p <%= targetStore %>"
+            sshCommand remote: remote, command: "tar -xzvf <%= tarStorePath %>/<%= staticFileName %>.tar.gz -C <%= targetStore %> --strip 1"
+          }
+        }
+      }
+    }
+  }
+}

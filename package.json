@@ -1,0 +1,19 @@
+{
+  "name": "ciwarehouse",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Colorssk/ciwarehouse.git"
+  },
+  "author": "glen",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Colorssk/ciwarehouse/issues"
+  },
+  "homepage": "https://github.com/Colorssk/ciwarehouse#readme"
+}
